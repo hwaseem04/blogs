@@ -1,0 +1,442 @@
+---
+layout: post
+title:  "Regular Expression in Python"
+date:   2022-09-10 18:59:21 +0530
+permalink: "/regex/" 
+---
+
+
+> For official documentation, visit [Python Regular Expressions](https://docs.python.org/3/library/re.html "Regular Expressions")
+
+> Useful Online regex tools : 
+>* [Regexr](https://regexr.com "Regexr")
+>* [Regex101](https://regex101.com "Regex101")
+<br>
+
+## **Regular Expressions (Regex)**
+
+
+- Regular expressions are widely used in computer science for the purpose of pattern matching. Let say you are searching for a string which exactly matches certain pattern (or specification of your need), then regex comes handy here.
+
+<br>
+
+ This notes is based on python module `re` (stands for _regular expression_). Execute the below command to import the module.
+
+```python
+import re
+```
+---
+
+### **Question**
+ Let us consider the case where you need to get user input as email id, and you need to accept only those emails which are valid (Valid in sense, not checking for domain names, rather we will be checking general syntax of a email id more strictly). 
+<br>
+
+## 1) re.search( _pattern_ , _string_ [,_flags_]) 
+- `re.search` is the most commonly used functionality in this module. _flags_ is optional. Let us solve the above question with this.
+
+<br>
+The following code will be subjected to change upon each new concepts.
+
+<br>
+
+```python
+import re
+
+# Using strip to just trim of any trailing whitespaces
+email = input("Email : ").strip()  
+
+if re.search("@", email):
+    print("Valid")
+else:
+    print("Invalid")
+
+```
+In the above code I have passed `@` as the pattern to match in `re.search()`. What this means is that any string which has `@` will be displayed as **Valid**. Let us improvise it a bit using following special characters in _re_ literature.
+
+<br>
+
+| Special Characters | Meaning  |
+| ------------------ | -------- |
+| .                  |  Match any character except newline character     |
+| *                  |  Allow 0 or more repetition of previous character |
+| +                  |  Allow 1 or more repetition of previous character | 
+| ?                  |  Allow 0 or 1 repetition of previous character    | 
+| {m}                |  Allow m repetitions of previous character        | 
+| {m,n}              |  Allow m - n repetitions of previous character    | 
+
+<br>
+
+```python
+import re
+
+# Using strip to just trim of any trailing whitespaces
+email = input("Email : ").strip()  
+
+if re.search(".+@.+", email):
+    print("Valid")
+else:
+    print("Invalid")
+
+```
+In the above code, notice I have used `.+` before and after `@`, i.e `.+@.+`<br>
+What this means is that I am trying to match a string that should have _1 or more_(specified by `+`) _characters, except newline_ (specified by `.`). 
+
+<br>
+
+But this is not just enough, if we input something like `hello@@some` is going to still print as VALID email as we havent set any restriction for **domain** syntax, number of **@** etc. There are still lot of other issues which I will deal one by one.
+
+
+
+---
+<br>
+
+Let us now first set a restriction for the ending of email address (Something specific to INDIA, i.e `.in`)
+```python
+import re
+
+# Using strip to just trim of any trailing whitespaces
+email = input("Email : ").strip()  
+
+if re.search(r".+@.+\.in", email):
+    print("Valid")
+else:
+    print("Invalid")
+
+```
+
+In the above code notice I have used `\.in` which mean I am trying to match for a string which exactly has something like **.in** in it. (NOTE : I am not doing anything to specify that the matching string **must** end with **.in**, which I will show in a moment)
+
+
+**_Few points to note:_**
+
+* I am using `\.` because to avoid confusion with special character `.`, hence my regex looks for a exact `.` in the input string.
+* I am using `r" "` i.e rawstring, inorder to avoid python to misinterpret anything inside it with escape sequence. It is advisable to use rawstring whenever you use `\` in regex for programmer's convenience. 
+    * In a Raw String escape sequences are not taken into account.
+* Still I havent restricted repetation of `@`. And still string input like `asdf %%some@@something.in ada` is valid, as we have'nt laid a strict starting and ending condition (so as to start with **proper username** and end with just **.in**).
+
+<br>
+
+Let us now see how we can set restriction for beginning and ending of the input string.
+
+| Special Character | Meaning |
+| ----------------- | ------- |
+| ^                 | Specifies the begininning |
+| $                 | Specifies the end         |
+
+The Description which I have used above will be different from that of the official documentation. But it conveys the same meaning.
+```python
+import re
+
+# Using strip to just trim of any trailing whitespaces
+email = input("Email : ").strip()  
+
+if re.search(r"^.+@.+\.in$", email):
+    print("Valid")
+else:
+    print("Invalid")
+
+```
+
+In the above code `^` & `$` specifies the beginning and ending of the pattern which we are looking for. So the beginning condition as per our pattern above is that we are looking for _1 or more characters_ . 
+
+Hence the string input `asdf %%some@@something.in ada` is invalid as we have ` ada` after `.in`. 
+
+But still `asdf %%some@@something.in` input is valid because we have'nt set any condition for the characters that are allowed for username(i.e characters before `@`), hence characters like `%`, *whitespaces*, even `@` are still allowed. Let us finetune it further. 
+
+---
+
+| Special Character | Meaning |
+| ----------------- | ------- |
+| [ ]                 | Specifies the set of characters allowed |
+| [^]                | Specifies the set of characters not allowed |
+
+* `[a-zA-Z0-9_\.]` Something like this specifies that the allowed characters must be Alphanumeric or underscores or periods (remember the usecase of `\.` which I described above).
+
+```python
+import re
+
+# Using strip to just trim of any trailing whitespaces
+email = input("Email : ").strip()  
+
+if re.search(r"^[a-zA-Z0-9_\.]+@[a-zA-Z0-9_]+\.in$", email):
+    print("Valid")
+else:
+    print("Invalid")
+
+```
+
+Description of `^[a-zA-Z0-9_]+@[a-zA-Z0-9_]+\.in$` is provided below : 
+* `^[a-zA-Z0-9_\.]+` : It allows atleast _one or more_ Alphanumeric or underscores or period characters in the beginning of the string before `@` (i.e for username in email).
+* `[a-zA-Z0-9_]+\.in$` : It allows atleast _one or more_ Alphanumeric or underscores  in the string after `@`(i.e for domain name), and must end with `.in`.
+* Hence it also restricts number of `@` which can be given in the input.
+
+<br>
+
+**For the above _regex pattern_ few invalid inputs are**
+* `someword hi@hello.in` - Because there is whitespace character before `@` which is not allowed
+* `h%i@hello.in` - Because `%` is used 
+* `hi@@hello.in` - Because multiple `@` is used. We restricted use of only AlphaNumeric, underscore and periods before `@`.
+* `@hello.in` - Because 0 characters before `@`. But we need atleast 1 character before `@`.
+* `hi@.in` - Because 0 characters between `@` and `.in`. But we required atleast _1 or more_.
+
+---
+
+The above regex pattern can be more succinctly written with the help of below special characters
+
+
+
+| Special Character | Meaning |
+| ----------------- | ------- |
+| \d                |  Only decimal digit allowed|
+| \D                |  Except a Decimal digits all other characters are allowed|
+| \s                |  Only whitespace characters like space, tab are allowed |
+| \S                |  Except a whitespace characters all other characters are allowed|
+| \w                |  Only AlphaNumeric and underscores are allowed|
+| \W                |  Except AlphaNumeric and underscores all other characters are allowed|
+
+<br>
+
+Let us use `\w` below. 
+
+```python
+import re
+
+# Using strip to just trim of any trailing whitespaces
+email = input("Email : ").strip()  
+
+if re.search(r"^\w+@\w+\.in$", email):
+    print("Valid")
+else:
+    print("Invalid")
+
+```
+
+In the above code instead of `[a-zA-Z0-9_\.]` I have used `\w` which almost conveys the same meaning except that `\w` doesnt allow periods. 
+
+There is one other way to specify acceptance of `periods` as well by **grouping** and by using `|` **or** operator, which I will discuss later in the tutorial.
+
+As for as now our regex pattern doesnt allow **periods** with `\w` for `username` i.e before `@`.
+
+---
+
+
+What if someone's email has multiple domain like **snuchennai.edu.in**, we need to modify our regex pattern to allow such possibilities as well. We can do that with following additional special characters.
+
+| Special Character | Meaning |
+| ----------------- | ------- |
+| A\|B              |  Either pattern A or patter B allowed|
+| (...)             |  Parenthesis can be used to group special characters|
+| (?: ...)          |  Non capturing version of `()`|
+
+Dont worry about the 3rd one for now, will let you know in a moment.
+
+```python
+import re
+
+# Using strip to just trim of any trailing whitespaces
+email = input("Email : ").strip()  
+
+if re.search(r"^(\w|\.)+@(\w+\.)?\w+\.in$", email):
+    print("Valid")
+else:
+    print("Invalid")
+
+```
+
+In the above code `(\w+\.)?` specifies we can have _0 or 1 repetitions(recall usage of `?` in one of the above table)_ of `\w+\.` as it is grouped using `()`.
+
+Hence our pattern accepts domains like `edu.in` _(i.e with 0 repetation of_  `\w+\.`) **or** `snu.edu.in` (_i.e with 1 repetation of_ `(\w+\.)`).
+
+Also notice the usage of `(\w|\.)` (read as *word character `or` period*) which now allows usage of **periods** as well in username.
+
+
+You can see below the demonstration video (click it to visit [asciinema site](https://asciinema.org/))of various valid and invalid email inputs for our above specified regex pattern.
+
+[![asciicast](/static/IMG.png)](https://asciinema.org/a/SDNVZX0lsJdrCkI1YR5rIdld9)
+
+---
+
+In re.search() there is one other amazing functionality involving `()` and `(?:)`.
+
+_**What if** you, not just want to match a pattern but also want to extract specific string that is being matched by the pattern_
+
+Offcourse with usual python coding you can attain that, but re.search() offers more functionality. Anyway lets see below both traditional pythonic way and regex way for one such example.
+
+**Consider the Question below**
+* You want to get user input their name, but along with their first and last name. Users input their name mostly in either of the below formats
+    * FirstName LastName
+    * LastName, FirstName
+* We need to write a code where we can get their proper names irrespective of the above formats.
+
+
+The solution in usual pythonic way
+```python
+name = input("What's your name? ").strip()
+if "," in name:
+    last,first = name.split(", ") # Assuming barely that user will give space after comma (i.e lastname, firstname)
+    name = f"{first} {last}"
+# If no comma is there we can directly print it.
+print(name)
+```
+
+But there are few issues in the above code :
+* What if user types with no space after comma? i.e `lastname,firstname`. The split function can't split anything and throws error because we are unpacking it with two variables.
+<!--- * What if someone has name like `Robert Downy Jr` where they vaguely give input as `Downy, Robert, Jr`. It will also pop out error, as we are unpacking only two items in split function. -->
+
+
+
+Let us see regex solution
+
+```python
+import re
+name = input("What's your name? ").strip()
+
+if matches := re.search(r"^(.+), *(.+)$", name) :
+    print(matches)
+    last, first = matches.groups()
+    # or we can do the below one to achieve the same
+    #last = matches.group(1)
+    #first = matches.group(2)
+    name = f"{first} {last}"
+
+print(name)
+```
+
+There are a couple of things going on above, let me break down one by one.
+* Python supports Walrus operator from python 3.8 onwards. It does both assignment job and checks for boolean value of the variable in LHS, i.e `matches`.
+
+* In the above regex pattern 
+    * `^(.+)` matches 1 or more charcters except newline in beginning
+    * `, *` maches for a comma and whitespace _(0 or more white space)_
+    * `(.+)$` matches 1 or more charcters except newline in the end
+
+* So far, in the previous codes we have checked just the boolean value of `re.search()`, if its true then we declared our pattern is matched with input string, else not. But with return value of `re.search()`, one other interesting thing can be achieved.
+
+* When we use `()` in our regex pattern it captures whatever string input matched within in. What it means is that, in the above code `(.+)` this matches any character _(1 or more repetations)_. So the first and second `()` captures each of the string matched to `.+` from the input. 
+
+* And the captured string can be obtained by grouping the captured string(In some sort of order, so that we can access them with some index) using `groups()`  or `group()` as done above.
+
+* Unlike usual python conventions of index starting at 0, here inorder to acces string matched inside first `()` we have to access them with index 1, i.e `matches.group(1)`.
+
+* And then we are using usual [f strings](https://docs.python.org/3/tutorial/inputoutput.html "f Strings Documentation") to get the right format.
+
+
+
+**Example** : If the input is `Khan,Sal`. Then `first = Sal` and `last = Khan`.
+
+_What if you dont need to capture anything unnecessarily in `re.search()`, here comes the non capturing version which I alluded you above `(?:some_regexpattern)`. For the above code if we dont want to capture then the regex will be `re.search(r"^(?:.+), *(?:.+)$", name)`._
+
+---
+A lot of stuff, isn't it ?
+But `re.search` is not the only function in `re` module.
+* `re.match()` - Similar to `re.search()`, except you dont need to explicitly provide `^` to specify beginning. 
+* `re.fullmatch` - Similar to `re.search()`, except you dont need to explicitly provide `^` and `$`to specify beginning and ending.
+
+*__SelfNote__* :  
+* `..*` is same as `.+`
+* `re.IGNORECASE` is a flag which avoids checking case sensitivity in user input. 
+    * usage : `re.search(pattern, string, re.IGNORECASE)`
+
+---
+
+## 2) re.sub(pattern, repl, string, count=0, flag=0)
+ re.sub() is used to replace particular sub string that matches the regex `pattern` with `repl` string in a main input `string`and return it.
+* `pattern` - regex pattern to match
+* `repl` - replacement string. TO replace it with matched string
+* `string` - Input string to replace particular sub string in it which matches the above `pattern` with `repl` string 
+
+
+Let us learn it with a *hypothetical* example question.
+
+### **Question**
+ Let us consider the case where you need to get user input as twitter username.
+ What if someone by mistake\laziness gave input by copypasting the url, something like `My username is http://twitter.com/username`, instead of giving as `My username is username`. 
+
+ So our job is to clean the input to have something like `My username is username` as output.
+
+ Let us see the solution first and I will go through it one by one.
+
+ **_Note_** : You can approach the above problem with usual pythonic way, but asusual regex provides enourmous functinality which we should'nt waste.
+ 
+
+```python
+import re
+
+url = input("Url : ").strip()
+required_string = re.sub(r"(https?://)?(www\.)?twitter\.com/", "", url)
+print(required_string)
+```
+
+**Explanation** (Dont worry if you couldn't get my explanation, it will be more vivid in example test cases below) : 
+1. `(https?://)?` : specifies usage of `https://` or `http://`(because inner `?`, which allows repetation of `s` 0 or 1 times) is  optional(Because of outer `?`, which means 0 or 1 repetation)<br>
+    1.1. Someone can even give input as `www.twitter.com\username`. Hence we are making `http` or `https` as optional.
+<br>
+1. `(www\.)?` : Similar to above we are even specifying that `www.` is optional
+<br>
+1. We are actually replacing any possibility of such urls with `""` (empty character) so that we are just left with the initial phrase `My username is` and the actual `username` at end.
+<br>
+1. If the user gave input with no url in it, then re.sub() will return the string with no changes.
+
+<br>
+
+**Example Test Cases:**
+
+* Input : `My username is elonmusk` <br>
+  Output: `My username is elonmusk` (Explanation point 4)
+  
+* Input : `My username is https://www.twitter.com/elonmusk` _(**Notice** `https`)_ <br>
+  Output: `My username is elonmusk`
+  
+* Input : `My username is http://www.twitter.com/elonmusk` _(**Notice** `http`)_ (**Explanaiton point 1**: We made `s` optional in end of http with help of `?`) <br>
+  Output: `My username is elonmusk`
+  
+* Input : `My username is www.twitter.com/elonmusk` (**Explanation point 1**: We made `https` or `http` itself optional, hence our pattern matching is more robust) <br>
+  Output: `My username is elonmusk`
+  
+* Input : `My username is https://twitter.com/elonmusk` (**Explanation point 2** : We made `www.` optional) <br>
+  Output: `My username is elonmusk`
+  
+
+More robust isn't it? If we want to achieve something like the above one in usual pythonic way, it would'nt be completed in just `4 lines of code`.
+
+---
+
+The above work can also be done with help of `re.search()` by capturing `()`
+
+
+```python
+url = input("Url : ").strip()
+if matches := re.search(r".*(?:https?://)?(?:www\.)?twitter\.com/([a-z0-9_]+)", url)
+    print(f"My Username is {matches.group(1)}")
+else:
+    print(url)
+```
+<br>
+
+**Note Few Points for the above code :**
+* I have used noncapturing version of `()` for first two `()`
+* If the input string matches the regex pattern then only it enters `if` loop, else it directly prints user input string `url`.
+* Example Test cases and output:
+    * Input : `My username is elonmusk` <br>
+      Output: `My username is elonmusk`
+
+    * Input : `My username is https://www.twitter.com/elonmusk` <br>
+      Output: `My username is elonmusk`
+
+    * Input : `My username is www.twitter.com/elonmusk` <br>
+      Output: `My username is elonmusk`
+
+---
+
+### Conclusion
+_I hope you got a clear understanding of regex. These are not the exhaustive list, there are lot other functionalities available in it. Just get to playaround with it, by refering to [official documentation](https://docs.python.org/3/library/re.html "Regex")._
+
+_Regex is also widely used in Perl, PHP, JavaScript, Java and even in searching engines used in Microsoft word, excel etc._
+
+For more examples refer my other codes in my repository
+* [IP_Address.py](https://github.com/iMuhammadwaseem/Regex-Notes/tree/main/programs/IP_Address.py) : To validate IP Address
+* [Convert_Time.py](https://github.com/iMuhammadwaseem/Regex-Notes/tree/main/programs/Convert_Time.py) : To Convert normal time to 24 hour time. 
+* [Shrink_Youtube_URL.py](https://github.com/iMuhammadwaseem/Regex-Notes/tree/main/programs/Shrink_Youtube_URL.py) : To Shrink Youtube urls.
+* [count_occurence.py](https://github.com/iMuhammadwaseem/Regex-Notes/tree/main/programs/count_occurence.py) : To count occurence of word `um`.
+
+___
