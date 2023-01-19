@@ -8,7 +8,9 @@ twitter_username: hwaseem04
 github_username:  hwaseem04
 
 # Build settings
-theme: minima
+
+# Coverted to regular theme
+# theme: minima
 plugins:
   - jekyll-feed
 
