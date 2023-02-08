@@ -10,9 +10,11 @@ github_username:  hwaseem04
 # Build settings
 
 # Coverted to regular theme
-# theme: minima
+theme: minima
 plugins:
   - jekyll-feed
+gem:
+  - jekyll-seo-tag
 
 # Exclude from processing.
 # The following items will not be processed, by default.

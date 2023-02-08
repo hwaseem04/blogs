@@ -2,7 +2,7 @@
 layout: post
 title:  "Rubiks Cube Color extractor"
 date:   2023-01-25 18:59:21 +0530
-permalink: "/regex/" 
+permalink: "/rubiks/" 
 ---
 
 ### Why this blog?
