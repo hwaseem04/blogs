@@ -34,12 +34,15 @@ Most of the codes like reading video frames, converting color space are self exp
 ```python
 annotless_frame = frame.copy()
 ```
-The reason for creating a copy of original frame is, I will be annotating the original frame, i.e by drawing cicles over it to detect 9 small squares. I dont want the annotation to interfere while calculating the average of the HSV values inside the 9 bounding boxes, for which I am using a clean `annotless_frame`. The code where I annotate the main frame is below,
+
+The reason for creating a copy of original frame is, I will be annotating the original frame, i.e by drawing cicles over it to detect 9 small squares. I dont want the annotation to interfere while calculating the average of the HSV values inside the 9 bounding boxes, for which I am using a clean `annotless_frame`. The code where I annotate the main frame is below, 
+
 ```python
 cv2.circle(frame,(int(rec[0][0]), int(rec[0][1])), int(rec[1][0]/2), (0,255,255), 10)
 ```
 
 Next part is about plotting the colors of each cube face. `count` is integer variable keeping track of the count of cube face plotted. Max value of count is 5, if count = 1 it means first face is plotted, if count = 6 it means last face is plotted. `mean_clr` is the immediate list of captured 9 HSV values. That is, it holds the HSV color values of the 9 squares of the cube face recently captured by pressing `e`.
+
 ```python
 for i in range(count):
     if i > 5:
@@ -66,6 +69,7 @@ if cv2.waitKey(60) & 0xFF == ord('e'):
 count = 0
 small_cube_color_maps = {0: [], 1: [], 2: [], 3: [], 4: [], 5: []}
 ```
+
 It is needed because `mean_clr` variable holds only the immediate captured 9 sqaure colors, but we also need to have all previously captured cube face's colors. You might have noticed in the [demo video](https://www.youtube.com/watch?v=lPK9oIrQoyA) after capturing new cube face, the exisiting cube face drawn still holds the colors inspite of `imshow` showing newly read frame at each instant. So essentially all the *so far* captured cube faces are plotted on each frame. You can find code snippet for that at the end of `draw_small_cube` function (in for loop) in `main.py`.
 
 ```python
@@ -92,6 +96,7 @@ Next comes the most important and challenging and at the same time **fun part**,
 3. [finding Contours](https://docs.opencv.org/4.7.0/d4/d73/tutorial_py_contours_begin.html)
 
 Code I used:
+
 ```
 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -129,6 +134,7 @@ for i in contours:
         print(rec[1][0] * rec[1][1])
         RR.append(rec)
 ```
+
 This code is quite self explanatory. The `cv2.approxPolyDP()` function approximates the contors to smallest polygon. If the number of vertices is `!=4` then definitely it won't be a square. 
 
 I need rectange(every square is a rectangle), so I use `cv2.minAreaRect()` function to find the best **smallest rectangle** that encloses the contour. Then I set contraint for the area of the rectangle, so that to avoid large/small bounding box(which doesn't belong to the cube) is captured. Ratio of length and width is constrained with little flexibilty for capturing square bounding boxes alone.
