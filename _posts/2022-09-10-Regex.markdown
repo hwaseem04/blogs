@@ -2,6 +2,7 @@
 layout: post
 title:  "Regular Expression in Python"
 date:   2022-09-10 18:59:21 +0530
+excerpt: "The awesomeness of regular expressions becomes evident once we establish a solid grasp of the fundamentals. I've made sure to take detailed notes for my future reference and for anyone out there"
 permalink: "/regex/" 
 ---
 

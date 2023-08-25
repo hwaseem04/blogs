@@ -2,6 +2,7 @@
 layout: post
 title:  "Rubiks Cube Color extractor"
 date:   2023-01-25 18:59:21 +0530
+excerpt: "Drawn from Andrej Karpathy's Cube Color Extractor concept, this blog encapsulates key lessons I've gained and outlines my thought process during the code implementation journey."
 permalink: "/rubiks/" 
 ---
 
