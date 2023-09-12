@@ -267,14 +267,18 @@ My main aim from this challenge was to learn, because that was the time I was ne
 - **Shouldn't have to worried on resizing**, atleast in this task: As I said before I later tested with Mask Dino with ResNet backbone, where ResNet is a CNN based model which requires fixed input size unlike ViT. So I had to resize the input images (Not as words patch, but as original whole image). But still after resizing it didn't affect the performance.
 
 - **Occam's Razor**: *The simplest hypothesis is preferable to one that is more complex. Ofcourse this might depend from one situation to other. But if I had to start this challenge again, I would rather start from an existing state-of-the-art architecture that is simple to run and debug. And then add complexity to the model, whether it be ViT or CNN based vision model. 
+
 <br>
 
 ### Conclusion and Acknowledgement
 <br>
 I hope my learnings, and pitfalls that I went through would help you navigate well in your future works. Anyway I enjoyed working on this challenge, though I didn't spend my entire time in this challenge as I had my internship work on priority at [CVIT](https://cvit.iiit.ac.in/) research lab at IIIT Hyderabad, I spent 2-3 hour consistently after my internship work for this challenge.
+
 <br>
 
 I should also acknowledge that I got wonderful advise and idea suggestions from seniors at CVIT lab, IIIT Hyderabad.
+
+<br>
 
 ### Further Reading Materials
 I am separately sharing the links that I mentioned in this blog;
