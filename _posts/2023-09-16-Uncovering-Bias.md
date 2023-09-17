@@ -14,7 +14,7 @@ A Model is said to be biased when it gives preference to certain specific featur
 
 <br>
 
-You can't deterministicly say your model gives equal importance to white/black, male/female, or other sensitive attributes. Bias might be implicitly learned by the model via imbalanced dataset (i.e more white and less black face images). It is often not feasible to determine the biased featured manually and hence we need to use a method that can automatically determine the biased features.
+You can't directly say whether your model gives equal importance to white/black, male/female, or other sensitive attributes. Bias might be implicitly learned by the model via imbalanced dataset (i.e more white and less black face images). It is often not feasible to determine the biased featured manually and hence we need to use a method that can automatically determine the biased features.
 
 <br>
 
@@ -55,7 +55,7 @@ from torch.utils.data import DataLoader, Dataset, Subset
 1.  To train a Simple CNN Model to classify whether given image
     corresponds to a person\'s face or not (Binary Classification, i.e
     output dimension of CNN is 1)
-2.  To train a Self Supervised Variational Autoencoders (SS-VAE):
+2.  To train a Semi Supervised Variational Autoencoders (SS-VAE):
     -   Using the above CNN as the encoder that outputs class label
         ($$z_0$$), `z` dimensional mean vector and `z` dimensional
         standard deviation (i.e output dimension of the encoder is
