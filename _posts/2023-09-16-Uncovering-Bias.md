@@ -7,17 +7,32 @@ permalink: "/ssvae/"
 ---
 
 ## Introduction
+
+<br>
+
 A Model is said to be biased when it gives preference to certain specific features. In certain applications like face detection, bias might pose serious concern in various institutions. 
+
+<br>
 
 You can't deterministicly say your model gives equal importance to white/black, male/female, or other sensitive attributes. Bias might be implicitly learned by the model via imbalanced dataset (i.e more white and less black face images). It is often not feasible to determine the biased featured manually and hence we need to use a method that can automatically determine the biased features.
 
+<br>
+
 In this blog, we will discuss one such, primitive, yet exciting way to uncover bias in a model. 
+
+<br>
 
 This is more of a code oriented blog, you can access the same content in this [jupyter file](https://github.com/hwaseem04/Uncovering-Bias-Using-VAE/blob/main/SS-VAE.ipynb).
 
+<br>
+
 You can access the dataset that I used from [Kaggle](https://www.kaggle.com/datasets/muhammadwasee/ss-vae)
 
+<br>
+
 ## Installing Necessary packages
+
+<br>
 
 ``` python
 import os
@@ -31,7 +46,11 @@ from torchvision import transforms
 from torch.utils.data import DataLoader, Dataset, Subset
 ```
 
+<br>
+
 ## Aim of this Notebook
+
+<br>
 
 1.  To train a Simple CNN Model to classify whether given image
     corresponds to a person\'s face or not (Binary Classification, i.e
@@ -56,6 +75,8 @@ from torch.utils.data import DataLoader, Dataset, Subset
 
 Reiterating;
 
+<br>
+
 Input data (mixure of face and non-face images) are fed into the encoder
 that outputs class label $$z_0$$ and two `z` dimensional vectors. By
 reparametrising the other two `z` dimensional vectors from encoder,
@@ -63,7 +84,11 @@ latent vector is sampled. Only for those images that have human faces
 ($$z_0=1$$) the reconstruction loss is calculated and then the loss is
 backpropagated.
 
+<br>
+
 ## The idea
+
+<br>
 
 VAEs are good at learning the underlying data distribution of the input.
 VAEs in general are unsupervised learning models, which learns to
@@ -72,10 +97,14 @@ specific labels or class information. This makes them good at capturing
 instrinsic structure of data, but less suited for tasks like
 classification
 
+<br>
+
 When we use labels in the above way where our model is using external
 labels only for classification and not for reconstruction we also force
 the model to learn the distribution in a way so that it learns
 discriminative features as well.
+
+<br>
 
 During training, the VAE will learn to map the input data to a latent
 space where similar data points (from the same class) are closer
@@ -84,13 +113,19 @@ apart. By leveraging both labeled and unlabeled data, the model can
 capture the underlying structure of the data more effectively. Hence we
 attempt using SS-VAE and not plain VAE.
 
+<br>
+
 ## Preparing data
+
+<br>
 
 I prepared a direct usable dataset for this problem. You can download it
 from here:
 [kaggle](https://www.kaggle.com/datasets/muhammadwasee/ss-vae). It is a
 mixture of tiny-imagenet dataset and celebA face dataset. To make it
 simple, I also ensured to maintain the class balance.
+
+<br>
 
 -   Train: 200000 images
     -   100000 Tiny Imagenet
@@ -100,6 +135,8 @@ simple, I also ensured to maintain the class balance.
     -   10000 CelebA
 -   Tiny ImageNet Dataset for Non face images
 -   CelebA Dataset for face images
+
+<br>
 
 ``` python
 class Data(Dataset):
@@ -131,6 +168,8 @@ class Data(Dataset):
         
 ```
 
+<br>
+
 ``` python
 transform = transforms.Compose([
     transforms.Resize((128, 128)),  # Resize the image to a fixed size
@@ -139,20 +178,30 @@ transform = transforms.Compose([
 ])
 ```
 
+<br>
+
 ``` python
 train_data = Data(transform=transform, path='/kaggle/input/ss-vae/temp/train')
 test_data = Data(transform=transform, path='/kaggle/input/ss-vae/temp/test')
 ```
+
+<br>
 
 ``` python
 train_loader = DataLoader(train_data, batch_size=128, shuffle=True)
 valid_loader = DataLoader(test_data, batch_size=128, shuffle=False)
 ```
 
+<br>
+
 ## Simple Face Classification Model
+
+<br>
 
 Building a simple yet efficient CNN model for face classification which
 will become the encoder in SS-VAE.
+
+<br>
 
 
 ``` python
@@ -177,8 +226,12 @@ CNN = nn.Sequential(
 )
 ```
 
+<br>
+
 Below is the typical PyTorch train loop boiler plate. Binary Cross
 Entropy is used as the loss function and Adam as optimization.
+
+<br>
 
 ``` python
 def train(model, epoch, data, data_vl):
@@ -224,9 +277,13 @@ def train(model, epoch, data, data_vl):
     return train_loss, train_accuracy, validation_loss, validation_accuracy
 ```
 
+<br>
+
 1 epoch is more that enough, the reason being the enormous amount of
 training data and the sufficient complexity of the CNN model to capture
 the pattern. We get \~99% accuracy in `Validation set`!
+
+<br>
 
 ``` python
 device = torch.device('cuda')
@@ -235,9 +292,14 @@ loss_fn = nn.BCEWithLogitsLoss()
 optimizer = torch.optim.Adam(CNN.parameters(), lr=0.001)
 train(CNN, 1, train_loader, valid_loader)
 ```
+
+<br>
+
 ```bash
     Epoch 1 accuracy: 0.9939 val_accuracy:0.9980
 ```
+
+<br>
 
 Well and good, we got our first work done, i.e building the CNN for face
 classification. Next we will have to use the above CNN as encoder by
@@ -245,7 +307,11 @@ changing its output dimension from $$1$$ to $$2 \times z + 1$$ where `z` is
 the latent vector dimension. Before that lets define few other utility
 functions (Dont get confused with $$z_0$$ and `z`)
 
+<br>
+
 ## Other Utilities
+
+<br>
 
 1.  Defining loss function used for SS-VAE.
     -   Classification loss: Binary Cross entropy
@@ -263,6 +329,8 @@ functions (Dont get confused with $$z_0$$ and `z`)
     -   Reparametrisation/sampling: $$ z = \mu + e^{0.5 log(\sigma)} * \epsilon $$
 3.  I am also defining a `Reshape` PyTorch layer which is later used in
     the decoder.
+
+<br>
 
 ``` python
 def vae_loss_function(x, x_hat, mu, z_logsigma, kl_weight=0.0005):
@@ -302,6 +370,8 @@ class Reshape(nn.Module):
         return x.view(x.shape[0], *self.shape[::-1])
 ```
 
+<br>
+
 ## Semi-Supervised VAE
 
 ![Architecture](../images/ss_vae/Architecture.png)
@@ -314,6 +384,8 @@ Refer the above figure;
 -   The decoder comprises of set of transpose convolutions where kernal,
     padding and strides are choosen in such a way to reconstruct the
     image with same dimension of that of input.
+
+<br>
 
 ``` python
 z_dim = 32
@@ -384,14 +456,21 @@ class SS_VAE(nn.Module):
         
 ```
 
+
+<br>
+
 Below is almost the same train loop used in the face classification
 above, except that the snippet is slightly modified to accept multiple
 outputs from encoder and loss values returned.
+
+<br>
 
 **Note :** You dont need to manually backpropagate each loss
 (classification and VAE loss) seperately, rather it would suffice to
 backprogate the `total loss` returned from `ss_vae_loss_function` that
 is sum of both the losses.
+
+<br>
 
 ``` python
 def train_vae(model, epoch, data, data_vl):
@@ -448,9 +527,13 @@ def train_vae(model, epoch, data, data_vl):
     return train_loss, train_accuracy, validation_loss, validation_accuracy
 ```
 
+<br>
+
 Again, 1 epoch is more that sufficient and fun fact: Validation Accuracy
 is more than that of train Accuracy : ), probably attributing to more
 complex data samples in train set.
+
+<br>
 
 ``` python
 np.random.seed(42)
@@ -461,19 +544,29 @@ optimizer_vae = torch.optim.Adam(ss_vae.parameters(), lr=0.0006)
 train_vae(ss_vae, 1, train_loader, valid_loader)
 ```
 
+<br>
+
 We are done with our second task/aim of this notebook, i.e building a
 Semi-Supervised VAE. We can verify from the classification accuracy that
 the model learnt as expected.
 
+<br>
+
 Next, lets get into the exciting part of this Notebook.
 
+<br>
+
 ## Uncovering Bias
+
+<br>
 
 Any model is susceptible to Bias, i.e giving more preference to specific
 set of features and neglecting others. In case of face classification
 model, we might not directly know where the bias lies. The model can
 give preference to male/female, white/black, wearing glass/not wearing,
 hair colors etc.
+
+<br>
 
 Bias becomes a serious concern when certain sections of the society are
 implicity under represented by the model, which brings serious societal
@@ -482,10 +575,14 @@ with several features like black/white, male/female, hair color etc.
 After training we can find performance on each categories. But this
 approach has few issues;
 
+<br>
+
 1.  Tiring annotations - It take a lot of time and effort for manual
     annotations
 2.  Features - We might not know `all` the features that a model will
     learn, so even if we are to annotate it wouldn\'t be efficient
+
+<br>
 
 Hence we have to devise a mechanism that can assist us in uncovering
 bias automatically within the model. VAEs are good at learning the
@@ -493,11 +590,17 @@ underlying probability distribution of input. Why not use that
 information and analyse the feature space learnt by the model to uncover
 potential bias?
 
+<br>
+
 The following is a primitive, yet interesting, approach to uncover
 biases and uncertainity in the learned model.
 
+<br>
+
 Lets first create a dataset of faces alone. We will be using this data
 in the subsequent code cells.
+
+<br>
 
 ``` python
 import glob
@@ -520,23 +623,33 @@ class Faces(Dataset):
         return image, 1.0, file
 ```
 
+<br>
+
 ``` python
 face_data = Faces(transform=transform, path='/kaggle/input/ss-vae/temp/test')
 face_loader = DataLoader(face_data, batch_size=1)
 len(face_loader) # 10000
 ```
 
+<br>
+
 ### 1) Analysis based on reconstruction loss 
+
+<br>
 
 The higher the reconstruction loss, we can say, the harder that
 particular example is for the model to learn. These examples are those
 that have high model uncertainty. However, this is not necessarily the
 same as bias.
 
+<br>
+
 **Why**? Because, if we are to make the model more sophisticated it can
 then learn these hard examples, but bias is something that will exist
 irrespective of the sophistication of the model, except if it is made to
 avoid bias explicitly.
+
+<br>
 
 ``` python
 VAE_loss = []
@@ -561,7 +674,11 @@ VAE_loss = np.array(VAE_loss)
 index = np.argsort(VAE_loss)
 ```
 
+<br>
+
 #### Images with low reconstruction loss
+
+<br>
 
 ``` python
 plt.figure(figsize=(30, 30))
@@ -580,9 +697,15 @@ plt.savefig('low_loss.png')
 plt.show()
 ```
 
+<br>
+
 ![Low VAE loss](../images/ss_vae/low_loss.png)
 
+<br>
+
 #### Images with High reconstruction loss
+
+<br>
 
 ``` python
 plt.figure(figsize=(30, 30))
@@ -601,15 +724,27 @@ plt.savefig('high_loss.png')
 plt.show()
 ```
 
+<br>
+
 ![High VAE loss](../images/ss_vae/high_loss.png)
+
+<br>
 
 Observations are noted below
 
+<br>
+
 ### 2) Analysing latent space features 
+
+<br>
 
 ### Density of latent features
 
+<br>
+
 Choose a latent feature and find out its distribution
+
+<br>
 
 ``` python
 idx_latent = 19 # feature index 19
@@ -626,7 +761,11 @@ plt.ylabel("Data density")
 plt.savefig('density.png')
 ```
 
+<br>
+
 ![Density](../images/ss_vae/density.png)
+
+<br>
 
 Now let us inspect how the reconstruction is affected while changing a
 single latent feature\'s value and keeping all other latent features\'
@@ -634,9 +773,13 @@ values as constant. Here the latent feature is selected by `idx_latent`
 variable and all the corresponding values of that feature is stored in
 `latent samples` (refer the above code cell).
 
+<br>
+
 I have created an interval (of length `num_steps`) for the latent
 feature `idx_latent` and reconstruct the image by changing only the
 `idx_latent`th latent feature and keeping all other features constant
+
+<br>
 
 
 ``` python
@@ -663,6 +806,8 @@ plt.savefig('img5.png')
 plt.show()
 ```
 
+<br>
+
 Sample Output - 1 
 
 ![Sample output](../images/ss_vae/img1.png)
@@ -688,11 +833,17 @@ Sample Output - 5
 ![Sample Output](../images/ss_vae/img6.png) -->
 
 
+<br>
+
 Different outputs are obtained by modifying `idx_latent` and `baseline_latent`.
+
+<br>
 
 Reconstructed image above from top left to bottom right corresponds to
 feature values of the particular latent feature from **lower to higer
 percentile of the normal distribution**.
+
+<br>
 
 ### Observations
 
@@ -712,7 +863,11 @@ percentile of the normal distribution**.
     other representation/features.
 
 
+<br>
+
 ### Is Accuracy a function of density/distribution of the latent space
+
+<br>
 
 Lets check it out using relative accuracy. For each latent feature,
 logit score is averaged (which says how confident your model says given
@@ -723,6 +878,7 @@ And indeed it is a function of the density. The latent space features
 are normally distributed, here the accuracy plots looks approximately
 like an inverted Normal distribution.
 
+<br>
 
 ``` python
 latent_dim = 32
@@ -765,12 +921,20 @@ plt.ylabel("Relative accuracy")
 plt.savefig('relative-density.png')
 ```
 
+<br>
+
 ![Alt text](../images/ss_vae/relative-accuracy.png)
+
+<br>
 
 ### Conclusion
 
 In this blog we first built a CNN based face detector, then modify its output and used it as the encoder for SS-VAE. Decoder of SS-VAE is built using transpose convolution.
 
+<br>
+
 Uncertainty in the model is observed using reconstruction loss and possible bias is analysed via inspecting the learnt latent variable features and distributions.
+
+<br>
 
 This isn't a exhausting possible ways of inspecting bias, yet this is a useful play to get some understanding of the impact of analysing latent variable features in bias and how latent variables affect the reconstruction output.
