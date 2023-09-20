@@ -2,7 +2,7 @@
 layout: post
 title:  "Uncovering bias and uncertainty in model using Semi-Supervised VAEs"
 date:   2023-09-16 18:59:21 +0530
-excerpt: "To write"
+excerpt: "Bias in a model can favor specific features, which is concerning in applications like face detection. Detecting such bias, especially for sensitive attributes, is challenging due to implicit learning from imbalanced datasets. We'll explore an, primitive yet, exciting method to automatically uncover model bias in this blog."
 permalink: "/ssvae/" 
 ---
 
