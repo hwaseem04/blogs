@@ -322,15 +322,18 @@ My main aim from this challenge was to learn, because that was the time I was ne
 
 <br>
 
+<!-- 
 ### Conclusion and Acknowledgement
 <br>
-I hope my learnings, and pitfalls that I went through would help you navigate well in your future works. Anyway I enjoyed working on this challenge, though I didn't spend my entire time in this challenge as I had my internship work on priority at [CVIT](https://cvit.iiit.ac.in/) research lab at IIIT Hyderabad, I spent 2-3 hour consistently after my internship work for this challenge.
+I hope my learnings, and pitfalls that I went through would help you navigate well in your future works.
+
+ Anyway I enjoyed working on this challenge, though I didn't spend my entire time in this challenge as I had my internship work on priority at [CVIT](https://cvit.iiit.ac.in/) research lab at IIIT Hyderabad, I spent 2-3 hour consistently after my internship work for this challenge.
 
 <br>
 
 I should also acknowledge that I got wonderful advise and idea suggestions from seniors at CVIT lab, IIIT Hyderabad.
 
-<br>
+<br> -->
 
 ### Further Reading Materials
 I am separately sharing the links that I mentioned in this blog;
